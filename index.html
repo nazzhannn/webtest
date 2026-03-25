@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Simple Form to Sheet</title>
+    <style>
+        body { font-family: sans-serif; padding: 40px; background: #f4f4f4; }
+        .container { background: white; padding: 20px; border-radius: 8px; max-width: 400px; margin: auto; }
+        input, textarea { width: 100%; padding: 10px; margin-bottom: 15px; border: 1px solid #ccc; box-sizing: border-box; }
+        button { width: 100%; padding: 10px; background: #28a745; color: white; border: none; cursor: pointer; }
+        button:disabled { background: #ccc; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Contact Us</h2>
+    <form id="contactForm">
+        <input type="text" id="name" placeholder="Your Name" required>
+        <input type="email" id="email" placeholder="Your Email" required>
+        <textarea id="message" placeholder="Your Message" rows="4"></textarea>
+        <button type="submit" id="submitBtn">Send to Google Sheets</button>
+    </form>
+</div>
+
+<script>
+    // 1. PASTE YOUR URL BELOW!
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxM1ClM10Nd6hcW3lzG1uAA1t7Qs7XAKEWtAHMhvgYSXxu1rtwHzJkXpm0RcRQq7ZKW/exec";
+
+    const form = document.getElementById('contactForm');
+    const btn = document.getElementById('submitBtn');
+
+    form.addEventListener('submit', e => {
+        e.preventDefault();
+        btn.disabled = true;
+        btn.innerText = "Sending...";
+
+        const data = {
+            name: document.getElementById('name').value,
+            email: document.getElementById('email').value,
+            message: document.getElementById('message').value
+        };
+
+        // This sends the data to your Google Sheet
+        fetch(SCRIPT_URL, {
+            method: 'POST',
+            mode: 'no-cors', // Essential for Apps Script
+            cache: 'no-cache',
+            body: JSON.stringify(data)
+        })
+        .then(() => {
+            alert("Success! Data recorded in Google Sheets.");
+            form.reset();
+            btn.disabled = false;
+            btn.innerText = "Send to Google Sheets";
+        })
+        .catch(error => {
+            alert("Error: " + error.message);
+            btn.disabled = false;
+        });
+    });
+</script>
+
+</body>
+</html>
