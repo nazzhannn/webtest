@@ -1,61 +1,120 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Simple Form to Sheet</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daily Habit & Food Tracker</title>
     <style>
-        body { font-family: sans-serif; padding: 40px; background: #f4f4f4; }
-        .container { background: rgb(163, 39, 39); padding: 20px; border-radius: 8px; max-width: 400px; margin: auto; }
-        input, textarea { width: 100%; padding: 10px; margin-bottom: 15px; border: 1px solid #ccc; box-sizing: border-box; }
-        button { width: 100%; padding: 10px; background: #28a745; color: white; border: none; cursor: pointer; }
-        button:disabled { background: #ccc; }
+        body { font-family: 'Segoe UI', sans-serif; padding: 20px; background-color: #f0f2f5; }
+        .container { background: white; padding: 30px; border-radius: 12px; max-width: 450px; margin: auto; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        h2 { text-align: center; color: #1a73e8; }
+        .section { margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 15px; }
+        label { display: block; font-weight: bold; margin-bottom: 8px; }
+        input[type="text"], input[type="time"], select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; }
+        .hidden { display: none; } /* This hides the sections initially */
+        .conditional-box { background: #eef5ff; padding: 15px; border-radius: 8px; margin-top: 10px; border-left: 4px solid #1a73e8; }
+        button { width: 100%; padding: 12px; background: #1a73e8; color: white; border: none; border-radius: 6px; cursor: pointer; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2>Contact broooo</h2>
-    <form id="contactForm">
-        <input type="text" id="name" placeholder="Your Name" required>
-        <input type="email" id="email" placeholder="Your Email" required>
-        <textarea id="message" placeholder="Your Message" rows="4"></textarea>
-        <button type="submit" id="submitBtn">Send to Google Sheets</button>
+    <h2>☀️ Daily Tracker</h2>
+    <form id="habitForm">
+        
+        <div class="section">
+            <label>Name</label>
+            <input type="text" id="name" required>
+        </div>
+
+        <div class="section">
+            <label>Time Brushed Teeth:</label>
+            <input type="time" id="brushTime" required>
+        </div>
+
+        <div class="section">
+            <label>Makan apa tadi pagi? (Breakfast)</label>
+            <select id="mainMeal" onchange="showFoodOptions()">
+                <option value="">-- Sila Pilih --</option>
+                <option value="Chicken">Ayam (Chicken)</option>
+                <option value="Fish">Ikan (Fish)</option>
+                <option value="Others">Lain-lain</option>
+            </select>
+
+            <div id="chickenSection" class="hidden conditional-box">
+                <label>Ayam masak apa?</label>
+                <select id="chickenDish">
+                    <option value="Ayam Goreng">Ayam Goreng</option>
+                    <option value="Ayam Masak Merah">Ayam Masak Merah</option>
+                    <option value="Ayam Kicap">Ayam Kicap</option>
+                </select>
+            </div>
+
+            <div id="fishSection" class="hidden conditional-box">
+                <label>Ikan apa?</label>
+                <select id="fishDish">
+                    <option value="Ikan Siakap">Ikan Siakap</option>
+                    <option value="Ikan Keli">Ikan Keli</option>
+                    <option value="Ikan Kembung">Ikan Kembung</option>
+                </select>
+            </div>
+        </div>
+
+        <button type="submit" id="submitBtn">Hantar Data</button>
     </form>
 </div>
 
 <script>
-    // 1. PASTE YOUR URL BELOW!
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxM1ClM10Nd6hcW3lzG1uAA1t7Qs7XAKEWtAHMhvgYSXxu1rtwHzJkXpm0RcRQq7ZKW/exec";
+    // 1. THIS FUNCTION HANDLES THE HIDE/SHOW LOGIC
+    function showFoodOptions() {
+        const meal = document.getElementById('mainMeal').value;
+        const chickenBox = document.getElementById('chickenSection');
+        const fishBox = document.getElementById('fishSection');
 
-    const form = document.getElementById('contactForm');
-    const btn = document.getElementById('submitBtn');
+        // Reset visibility
+        chickenBox.classList.add('hidden');
+        fishBox.classList.add('hidden');
 
-    form.addEventListener('submit', e => {
+        if (meal === 'Chicken') {
+            chickenBox.classList.remove('hidden');
+        } else if (meal === 'Fish') {
+            fishBox.classList.remove('hidden');
+        }
+    }
+
+    // 2. SENDING DATA TO GOOGLE SHEETS
+    const SCRIPT_URL = "PASTE_YOUR_URL_HERE";
+
+    document.getElementById('habitForm').addEventListener('submit', function(e) {
         e.preventDefault();
+        const btn = document.getElementById('submitBtn');
         btn.disabled = true;
-        btn.innerText = "Sending...";
+        btn.innerText = "Sabar, tengah simpan...";
 
-        const data = {
+        const mealType = document.getElementById('mainMeal').value;
+        let specificDish = "N/A";
+
+        if (mealType === 'Chicken') {
+            specificDish = document.getElementById('chickenDish').value;
+        } else if (mealType === 'Fish') {
+            specificDish = document.getElementById('fishDish').value;
+        }
+
+        const payload = {
             name: document.getElementById('name').value,
-            email: document.getElementById('email').value,
-            message: document.getElementById('message').value
+            brushTime: document.getElementById('brushTime').value,
+            mainMeal: mealType,
+            specificDish: specificDish
         };
 
-        // This sends the data to your Google Sheet
         fetch(SCRIPT_URL, {
             method: 'POST',
-            mode: 'no-cors', // Essential for Apps Script
-            cache: 'no-cache',
-            body: JSON.stringify(data)
+            mode: 'no-cors',
+            body: JSON.stringify(payload)
         })
         .then(() => {
-            alert("Success! Data recorded in Google Sheets.");
-            form.reset();
-            btn.disabled = false;
-            btn.innerText = "Send to Google Sheets";
-        })
-        .catch(error => {
-            alert("Error: " + error.message);
-            btn.disabled = false;
+            alert("Data berjaya disimpan!");
+            location.reload(); // Refresh page
         });
     });
 </script>
