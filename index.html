@@ -3,102 +3,121 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Daily Habit & Food Tracker</title>
+    <title>Daily Habit Tracker</title>
     <style>
         body { font-family: 'Segoe UI', sans-serif; padding: 20px; background-color: #f0f2f5; }
         .container { background: white; padding: 30px; border-radius: 12px; max-width: 450px; margin: auto; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .page { display: none; } /* Hide all pages by default */
+        .active { display: block; } /* Only show the active page */
+        
         h2 { text-align: center; color: #1a73e8; }
-        .section { margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 15px; }
-        label { display: block; font-weight: bold; margin-bottom: 8px; }
-        input[type="text"], input[type="time"], select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; }
-        .hidden { display: none; } /* This hides the sections initially */
-        .conditional-box { background: #eef5ff; padding: 15px; border-radius: 8px; margin-top: 10px; border-left: 4px solid #1a73e8; }
-        button { width: 100%; padding: 12px; background: #1a73e8; color: white; border: none; border-radius: 6px; cursor: pointer; }
+        label { display: block; font-weight: bold; margin: 15px 0 5px; }
+        input, select { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; }
+        
+        .btn-group { display: flex; gap: 10px; margin-top: 20px; }
+        button { flex: 1; padding: 12px; border-radius: 6px; cursor: pointer; border: none; font-size: 16px; }
+        .btn-next { background: #1a73e8; color: white; }
+        .btn-back { background: #e0e0e0; color: #333; }
+        .btn-submit { background: #28a745; color: white; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2>☀️ Daily Tracker</h2>
-    <form id="habitForm">
+    <form id="multiStepForm">
         
-        <div class="section">
+        <div id="page1" class="page active">
+            <h2>Step 1: Morning Info</h2>
             <label>Name</label>
-            <input type="text" id="name" required>
-        </div>
-
-        <div class="section">
-            <label>Time Brushed Teeth:</label>
+            <input type="text" id="name" placeholder="Nama anda" required>
+            
+            <label>Time Brushed Teeth</label>
             <input type="time" id="brushTime" required>
+            
+            <div class="btn-group">
+                <button type="button" class="btn-next" onclick="goToPage(2)">Next ➔</button>
+            </div>
         </div>
 
-        <div class="section">
-            <label>Makan apa tadi pagi? (Breakfast)</label>
-            <select id="mainMeal" onchange="showFoodOptions()">
-                <option value="">-- Sila Pilih --</option>
+        <div id="page2" class="page">
+            <h2>Step 2: Breakfast</h2>
+            <label>What did you eat?</label>
+            <select id="mainMeal">
                 <option value="Chicken">Ayam (Chicken)</option>
                 <option value="Fish">Ikan (Fish)</option>
-                <option value="Others">Lain-lain</option>
             </select>
-
-            <div id="chickenSection" class="hidden conditional-box">
-                <label>Ayam masak apa?</label>
-                <select id="chickenDish">
-                    <option value="Ayam Goreng">Ayam Goreng</option>
-                    <option value="Ayam Masak Merah">Ayam Masak Merah</option>
-                    <option value="Ayam Kicap">Ayam Kicap</option>
-                </select>
-            </div>
-
-            <div id="fishSection" class="hidden conditional-box">
-                <label>Ikan apa?</label>
-                <select id="fishDish">
-                    <option value="Ikan Siakap">Ikan Siakap</option>
-                    <option value="Ikan Keli">Ikan Keli</option>
-                    <option value="Ikan Kembung">Ikan Kembung</option>
-                </select>
+            
+            <div class="btn-group">
+                <button type="button" class="btn-back" onclick="goToPage(1)">Back</button>
+                <button type="button" class="btn-next" onclick="handleFoodBranch()">Next ➔</button>
             </div>
         </div>
 
-        <button type="submit" id="submitBtn">Hantar Data</button>
+        <div id="page3Chicken" class="page">
+            <h2>Step 3: Chicken Details</h2>
+            <label>Ayam masak apa?</label>
+            <select id="chickenDish">
+                <option value="Ayam Goreng">Ayam Goreng</option>
+                <option value="Ayam Masak Merah">Ayam Masak Merah</option>
+                <option value="Ayam Kicap">Ayam Kicap</option>
+            </select>
+            <div class="btn-group">
+                <button type="button" class="btn-back" onclick="goToPage(2)">Back</button>
+                <button type="submit" class="btn-submit" id="submitBtn">Hantar Data</button>
+            </div>
+        </div>
+
+        <div id="page3Fish" class="page">
+            <h2>Step 3: Fish Details</h2>
+            <label>Ikan apa tu?</label>
+            <select id="fishDish">
+                <option value="Ikan Siakap">Ikan Siakap</option>
+                <option value="Ikan Keli">Ikan Keli</option>
+                <option value="Ikan Kembung">Ikan Kembung</option>
+            </select>
+            <div class="btn-group">
+                <button type="button" class="btn-back" onclick="goToPage(2)">Back</button>
+                <button type="submit" class="btn-submit" id="submitBtn2">Hantar Data</button>
+            </div>
+        </div>
+
     </form>
 </div>
 
 <script>
-    // 1. THIS FUNCTION HANDLES THE HIDE/SHOW LOGIC
-    function showFoodOptions() {
+    const SCRIPT_URL = "PASTE_YOUR_URL_HERE";
+
+    // FUNCTION TO SWITCH PAGES
+    function goToPage(pageNum) {
+        // Hide all pages
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        // Show the specific page
+        document.getElementById('page' + pageNum).classList.add('active');
+    }
+
+    // FUNCTION TO HANDLE THE CHICKEN/FISH BRANCH
+    function handleFoodBranch() {
         const meal = document.getElementById('mainMeal').value;
-        const chickenBox = document.getElementById('chickenSection');
-        const fishBox = document.getElementById('fishSection');
-
-        // Reset visibility
-        chickenBox.classList.add('hidden');
-        fishBox.classList.add('hidden');
-
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        
         if (meal === 'Chicken') {
-            chickenBox.classList.remove('hidden');
-        } else if (meal === 'Fish') {
-            fishBox.classList.remove('hidden');
+            document.getElementById('page3Chicken').classList.add('active');
+        } else {
+            document.getElementById('page3Fish').classList.add('active');
         }
     }
 
-    // 2. SENDING DATA TO GOOGLE SHEETS
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxmy7tU3-W5afzNvGIK9N6D4STfyncdGjQrFUfnPGEogTT6i9cZHp9IkF_l7CKPiRkt/exec";
-
-    document.getElementById('habitForm').addEventListener('submit', function(e) {
+    // SUBMIT DATA
+    document.getElementById('multiStepForm').addEventListener('submit', function(e) {
         e.preventDefault();
-        const btn = document.getElementById('submitBtn');
+        const btn = document.querySelector('.active .btn-submit');
+        btn.innerText = "Simpan...";
         btn.disabled = true;
-        btn.innerText = "Sabar, tengah simpan...";
 
         const mealType = document.getElementById('mainMeal').value;
-        let specificDish = "N/A";
-
-        if (mealType === 'Chicken') {
-            specificDish = document.getElementById('chickenDish').value;
-        } else if (mealType === 'Fish') {
-            specificDish = document.getElementById('fishDish').value;
-        }
+        const specificDish = (mealType === 'Chicken') ? 
+                             document.getElementById('chickenDish').value : 
+                             document.getElementById('fishDish').value;
 
         const payload = {
             name: document.getElementById('name').value,
@@ -113,8 +132,8 @@
             body: JSON.stringify(payload)
         })
         .then(() => {
-            alert("Data berjaya disimpan!");
-            location.reload(); // Refresh page
+            alert("Terbaik! Data saved to Sheets.");
+            location.reload(); 
         });
     });
 </script>
